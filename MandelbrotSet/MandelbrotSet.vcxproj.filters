@@ -12,6 +12,9 @@
     <ClCompile Include="Source\WinMain.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Source\D3D11System.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\ps.hlsl">
@@ -22,7 +25,13 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\DInput.h">
+    <ClInclude Include="Source\D3D11Shader.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\D3D11System.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GraphicWindow.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
