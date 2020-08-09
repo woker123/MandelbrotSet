@@ -27,14 +27,13 @@ const unsigned int VERTEX_STRIDE = sizeof(Vertex);
 const unsigned int VERTEX_OFFSET = 0;
 const int SCREEN_WIDTH = 800, SCREEN_HEIGHT = 800;
 HWND g_hwnd = nullptr;
-unsigned int g_currentBackBuffer = 0;
 D3DXVECTOR3 g_windowLocation = D3DXVECTOR3(0, 0, 0);
 D3DXVECTOR3 g_windowScale = D3DXVECTOR3(2, 2, 1);
 D3DXVECTOR2 g_complex = D3DXVECTOR2(0, 0);
 ComPtr<ID3D11DeviceContext> g_context;
 ComPtr<ID3D11Device> g_device;
 ComPtr<IDXGISwapChain> g_swapChain;
-ComPtr<ID3D11RenderTargetView> g_backBufferRTV[2];
+ComPtr<ID3D11RenderTargetView> g_backBufferRTV;
 ComPtr<ID3D11Buffer> g_vertexBuffer;
 ComPtr<ID3D11Buffer> g_transMatrixBuffer;
 ComPtr<ID3D11Buffer> g_complexBuffer;
@@ -57,7 +56,6 @@ void bindContext();
 void setViewPort(int xPos, int yPos, int width, int height);
 void updateTransMatrixBuffer();
 void updateComplexBuffer();
-void swapBackBuffer();
 void draw();
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreInstance, PSTR lpCmdLine, INT nCmdShow)
@@ -76,7 +74,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreInstance, PSTR lpCmdLine, 
 		draw();
 
 		g_swapChain->Present(0, 0);
-		swapBackBuffer();
 	}
 
 
@@ -148,11 +145,6 @@ bool doMessage(HWND hwnd)
 
 }
 
-void swapBackBuffer()
-{
-	g_currentBackBuffer = g_currentBackBuffer ? 0 : 1;
-}
-
 void createDeviceAndSwapchain()
 {
 	DXGI_SWAP_CHAIN_DESC scd = {};
@@ -189,14 +181,12 @@ void createDeviceAndSwapchain()
 
 void createBackBufferRTVs()
 {
-	for (int i = 0; i < 2; ++i)
-	{
-		ComPtr<ID3D11Texture2D> backBuffer;
-		g_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
-		HRESULT create_rendertarget =
-		g_device->CreateRenderTargetView(backBuffer.Get(), NULL, &g_backBufferRTV[i]);
-		assert(SUCCEEDED(create_rendertarget));
-	}
+	ComPtr<ID3D11Texture2D> backBuffer;
+	g_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
+	HRESULT create_rendertarget =
+	g_device->CreateRenderTargetView(backBuffer.Get(), NULL, &g_backBufferRTV);
+	assert(SUCCEEDED(create_rendertarget));
+
 }
 
 void createConstantBuffers()
@@ -328,12 +318,12 @@ void bindContext()
 	g_context->PSSetConstantBuffers(0, 1, g_complexBuffer.GetAddressOf());
 	g_context->PSSetShader(g_ps.Get(), NULL, 0);
 	setViewPort(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-	g_context->OMSetRenderTargets(1, g_backBufferRTV[g_currentBackBuffer].GetAddressOf(), NULL);
+	g_context->OMSetRenderTargets(1, g_backBufferRTV.GetAddressOf(), NULL);
 }
 
 void draw()
 {
 	float color[] = {0.0, 0.0, 0.0, 0.0};
-	g_context->ClearRenderTargetView(g_backBufferRTV[g_currentBackBuffer].Get(), color);
+	g_context->ClearRenderTargetView(g_backBufferRTV.Get(), color);
 	g_context->Draw(4, 0);
 }
